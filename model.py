@@ -93,7 +93,10 @@ class BatchTreeEncoder(nn.Module):
             Variable(torch.zeros(self.batch_size, self.encode_dim))
         )
         self.node_list = []
+
         self.traverse_mul(x, list(range(self.batch_size)))
+        #! I think these are the hidden representations of the model.
+        #! Need t make sure later.
         self.node_list = torch.stack(self.node_list)
         return torch.max(self.node_list, 0)[0]
 
