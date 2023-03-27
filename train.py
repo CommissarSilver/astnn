@@ -38,7 +38,7 @@ if __name__ == '__main__':
     USE_GPU = True
     MAX_TOKENS = word2vec.syn0.shape[0]
     EMBEDDING_DIM = word2vec.syn0.shape[1]
-
+    #! the model is is instantiated here.
     model = BatchProgramClassifier(EMBEDDING_DIM,HIDDEN_DIM,MAX_TOKENS+1,ENCODE_DIM,LABELS,BATCH_SIZE,
                                    USE_GPU, embeddings)
     if USE_GPU:
