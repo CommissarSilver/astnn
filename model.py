@@ -209,7 +209,7 @@ class BatchProgramClassifier(nn.Module):
         # pooling
         gru_out = F.max_pool1d(gru_out, gru_out.size(2)).squeeze(2)
         # gru_out = gru_out[:,-1]
-
+        #! y and gru_out are the hidden representations of the model i think
         # linear
         y = self.hidden2label(gru_out)
         return y
