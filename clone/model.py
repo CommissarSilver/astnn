@@ -202,6 +202,7 @@ class BatchProgramCC(nn.Module):
 
         gru_out = torch.transpose(gru_out, 1, 2)
         # pooling
+        #! I think this is what we're after
         gru_out = F.max_pool1d(gru_out, gru_out.size(2)).squeeze(2)
         # gru_out = gru_out[:,-1]
 
