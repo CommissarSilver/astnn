@@ -41,6 +41,8 @@ class Pipeline:
             pd.DataFrame: DataFrame with the columns id, code (C code parsed by
                 pycparser) and label.
         """
+        #! This part is reponsible for generating the input required for training the model
+        #! If there comes a time when you want to train the mdel on some othr language, you need to do it here.
         input_file_path = os.path.join(self.root, input_file)
         if output_file is None:
             source = pd.read_pickle(input_file_path)
