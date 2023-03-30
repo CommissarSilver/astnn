@@ -12,35 +12,45 @@ import sys
 
 
 def get_batch(dataset, idx, bs):
-    tmp = dataset.iloc[idx: idx+bs]
+    tmp = dataset.iloc[idx : idx + bs]
     data, labels = [], []
     for _, item in tmp.iterrows():
         data.append(item[1])
-        labels.append(item[2]-1)
+        labels.append(item[2] - 1)
     return data, torch.LongTensor(labels)
 
 
-if __name__ == '__main__':
-    root = 'data/'
-    train_data = pd.read_pickle(root+'train/blocks.pkl')
-    val_data = pd.read_pickle(root + 'dev/blocks.pkl')
-    test_data = pd.read_pickle(root+'test/blocks.pkl')
+if __name__ == "__main__":
+    root = os.path.join(os.getcwd(), "data")
+    train_data = pd.read_pickle(root + "/train/blocks.pkl")
+    val_data = pd.read_pickle(root + "/dev/blocks.pkl")
+    test_data = pd.read_pickle(root + "/test/blocks.pkl")
 
-    word2vec = Word2Vec.load(root+"train/embedding/node_w2v_128").wv
-    embeddings = np.zeros((word2vec.syn0.shape[0] + 1, word2vec.syn0.shape[1]), dtype="float32")
-    embeddings[:word2vec.syn0.shape[0]] = word2vec.syn0
+    word2vec = Word2Vec.load(root + "/train/embedding/node_w2v_128").wv
+    embeddings = np.zeros(
+        (word2vec.syn0.shape[0] + 1, word2vec.syn0.shape[1]), dtype="float32"
+    )
+    embeddings[: word2vec.syn0.shape[0]] = word2vec.syn0
 
     HIDDEN_DIM = 100
     ENCODE_DIM = 128
     LABELS = 104
     EPOCHS = 15
     BATCH_SIZE = 64
-    USE_GPU = True
+    USE_GPU = False
     MAX_TOKENS = word2vec.syn0.shape[0]
     EMBEDDING_DIM = word2vec.syn0.shape[1]
     #! the model is is instantiated here.
-    model = BatchProgramClassifier(EMBEDDING_DIM,HIDDEN_DIM,MAX_TOKENS+1,ENCODE_DIM,LABELS,BATCH_SIZE,
-                                   USE_GPU, embeddings)
+    model = BatchProgramClassifier(
+        EMBEDDING_DIM,
+        HIDDEN_DIM,
+        MAX_TOKENS + 1,
+        ENCODE_DIM,
+        LABELS,
+        BATCH_SIZE,
+        USE_GPU,
+        embeddings,
+    )
     if USE_GPU:
         model.cuda()
 
@@ -53,7 +63,7 @@ if __name__ == '__main__':
     train_acc_ = []
     val_acc_ = []
     best_acc = 0.0
-    print('Start training...')
+    print("Start training...")
     # training procedure
     best_model = model
     for epoch in range(EPOCHS):
@@ -83,7 +93,7 @@ if __name__ == '__main__':
             _, predicted = torch.max(output.data, 1)
             total_acc += (predicted == train_labels).sum()
             total += len(train_labels)
-            total_loss += loss.item()*len(train_inputs)
+            total_loss += loss.item() * len(train_inputs)
 
         train_loss_.append(total_loss / total)
         train_acc_.append(total_acc.item() / total)
@@ -109,16 +119,25 @@ if __name__ == '__main__':
             _, predicted = torch.max(output.data, 1)
             total_acc += (predicted == val_labels).sum()
             total += len(val_labels)
-            total_loss += loss.item()*len(val_inputs)
+            total_loss += loss.item() * len(val_inputs)
         val_loss_.append(total_loss / total)
         val_acc_.append(total_acc.item() / total)
         end_time = time.time()
-        if total_acc/total > best_acc:
+        if total_acc / total > best_acc:
             best_model = model
-        print('[Epoch: %3d/%3d] Training Loss: %.4f, Validation Loss: %.4f,'
-              ' Training Acc: %.3f, Validation Acc: %.3f, Time Cost: %.3f s'
-              % (epoch + 1, EPOCHS, train_loss_[epoch], val_loss_[epoch],
-                 train_acc_[epoch], val_acc_[epoch], end_time - start_time))
+        print(
+            "[Epoch: %3d/%3d] Training Loss: %.4f, Validation Loss: %.4f,"
+            " Training Acc: %.3f, Validation Acc: %.3f, Time Cost: %.3f s"
+            % (
+                epoch + 1,
+                EPOCHS,
+                train_loss_[epoch],
+                val_loss_[epoch],
+                train_acc_[epoch],
+                val_acc_[epoch],
+                end_time - start_time,
+            )
+        )
 
     total_acc = 0.0
     total_loss = 0.0

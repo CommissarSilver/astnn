@@ -196,7 +196,7 @@ class BatchProgramClassifier(nn.Module):
         encodes = torch.cat(seq)
         encodes = encodes.view(self.batch_size, max_len, -1)
         encodes = nn.utils.rnn.pack_padded_sequence(
-            encodes, torch.LongTensor(lens), True, False
+            encodes, torch.LongTensor(list(sorted(lens, reverse=True))), True
         )
 
         # gru
