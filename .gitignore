@@ -1,2 +1,7 @@
+*.pyc
 /data
 .vscode
+/clone/data/c/dev
+/clone/data/c/train
+/clone/data/c/test
+/clone/data/c/ast.pkl
