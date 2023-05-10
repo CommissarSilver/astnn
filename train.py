@@ -123,6 +123,9 @@ if __name__ == "__main__":
         val_loss_.append(total_loss / total)
         val_acc_.append(total_acc.item() / total)
         end_time = time.time()
+
+        torch.save(model.state_dict(), "model_clone_c.pt")
+
         if total_acc / total > best_acc:
             best_model = model
         print(
@@ -161,4 +164,10 @@ if __name__ == "__main__":
         total_acc += (predicted == test_labels).sum()
         total += len(test_labels)
         total_loss += loss.item() * len(test_inputs)
+
+    torch.save(model.state_dict(), "model_clone_c.pt")
+
     print("Testing results(Acc):", total_acc.item() / total)
+
+
+    
