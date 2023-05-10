@@ -15,7 +15,7 @@ class Pipeline:
         self.language = language.lower()
         assert self.language in ("c", "java")
         self.ratio = ratio
-        self.root = os.path.join(os.getcwd(), "clone", root)
+        self.root = os.path.join(os.getcwd(), root)
         self.sources = None
         self.blocks = None
         self.pairs = None
@@ -236,5 +236,5 @@ def main(lang):
 
 
 if __name__ == "__main__":
-    main("c")
+    main("java")
 

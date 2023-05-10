@@ -23,7 +23,7 @@ class BatchTreeEncoder(nn.Module):
         self.activation = F.relu
         self.stop = -1
         self.batch_size = batch_size
-        self.use_gpu = use_gpu
+        self.use_gpu = False
         self.node_list = []
         self.th = torch.cuda if use_gpu else torch
         self.batch_node = None
@@ -106,7 +106,7 @@ class BatchProgramCC(nn.Module):
         encode_dim,
         label_size,
         batch_size,
-        use_gpu=True,
+        use_gpu=False,
         pretrained_weight=None,
     ):
         super(BatchProgramCC, self).__init__()
@@ -172,15 +172,17 @@ class BatchProgramCC(nn.Module):
 
     def encode(self, x):
         #! it seems the magic of the ccd is happening here
-        lens = [len(item) for item in x]
-        max_len = max(lens)
+        lens_ = [len(item) for item in x]
+        max_len = max(lens_)
 
-        encodes = []
+        # sort lens dict based on the keys in decending order
+        encodes_ = []
         for i in range(self.batch_size):
-            for j in range(lens[i]):
-                encodes.append(x[i][j])
+            for j in range(lens_[i]):
+                encodes_.append(x[i][j])
 
-        encodes = self.encoder(encodes, sum(lens))
+        lens = sorted(lens_, reverse=True)
+        encodes = self.encoder(encodes_, sum(lens))
         seq, start, end = [], 0, 0
         for i in range(self.batch_size):
             end += lens[i]
@@ -191,7 +193,7 @@ class BatchProgramCC(nn.Module):
         encodes = torch.cat(seq)
         encodes = encodes.view(self.batch_size, max_len, -1)
         encodes = nn.utils.rnn.pack_padded_sequence(
-            encodes, torch.LongTensor(lens), True, False
+            input=encodes, lengths=torch.LongTensor(lens), batch_first=True
         )
         # return encodes
 
