@@ -27,11 +27,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Choose a dataset:[c|java]")
     parser.add_argument("--lang")
     args = parser.parse_args()
-    if not args.lang:
-        print("No specified dataset")
-        exit(1)
-    root = "data/"
-    lang = args.lang
+    lang = "java"
+    root = "/Users/ahura/Nexus/astnn/clone/data/"
+    # lang = args.lang
     categories = 1
     if lang == "java":
         categories = 5
@@ -106,10 +104,23 @@ if __name__ == "__main__":
                 output = model(train1_inputs, train2_inputs)
 
                 loss = loss_function(output, Variable(train_labels))
+                # print acciracy as well as loss
+
+                # get accuracy from output and labels
+                accuracy = (
+                    (output.cpu().data.numpy() > 0.5) == train_labels.cpu().numpy()
+                ).sum()
+
                 loss.backward()
                 optimizer.step()
+                print(
+                    f"Loss at {epoch}: ",
+                    loss.item(),
+                    "Accuracy: %f" % (float(accuracy) / (BATCH_SIZE)),
+                )
         print("Testing-%d..." % t)
         torch.save(model.state_dict(), f"astnn_model_{lang}" + ".pkl")
+        model.load_state_dict(torch.load(f"astnn_model_{lang}" + ".pkl"))
         # testing procedure
         predicts = []
         trues = []
@@ -133,8 +144,10 @@ if __name__ == "__main__":
             predicted = (output.data > 0.5).cpu().numpy()
             predicts.extend(predicted)
             trues.extend(test_labels.cpu().numpy())
+
             total += len(test_labels)
             total_loss += loss.item() * len(test_labels)
+
         if lang == "java":
             weights = [0, 0.005, 0.001, 0.002, 0.010, 0.982]
             p, r, f, _ = precision_recall_fscore_support(
@@ -148,5 +161,7 @@ if __name__ == "__main__":
             precision, recall, f1, _ = precision_recall_fscore_support(
                 trues, predicts, average="binary"
             )
+            accuracy = (predicts == trues) / len(trues)
+            print("ACcuracy: ", accuracy)
 
     print("Total testing results(P,R,F1):%.3f, %.3f, %.3f" % (precision, recall, f1))
