@@ -171,18 +171,15 @@ class BatchProgramCC(nn.Module):
         return zeros
 
     def encode(self, x):
-        #! it seems the magic of the ccd is happening here
-        lens_ = [len(item) for item in x]
-        max_len = max(lens_)
+        lens = [len(item) for item in x]
+        max_len = max(lens)
 
-        # sort lens dict based on the keys in decending order
-        encodes_ = []
+        encodes = []
         for i in range(self.batch_size):
-            for j in range(lens_[i]):
-                encodes_.append(x[i][j])
+            for j in range(lens[i]):
+                encodes.append(x[i][j])
 
-        lens = sorted(lens_, reverse=True)
-        encodes = self.encoder(encodes_, sum(lens))
+        encodes = self.encoder(encodes, sum(lens))
         seq, start, end = [], 0, 0
         for i in range(self.batch_size):
             end += lens[i]
@@ -192,8 +189,12 @@ class BatchProgramCC(nn.Module):
             start = end
         encodes = torch.cat(seq)
         encodes = encodes.view(self.batch_size, max_len, -1)
+        # since enforce_sorted is not supported in this pytorch version, we need to do it manually
+        lens, sorted_indices = torch.sort(torch.tensor(lens), descending=True)
+        encodes = torch.index_select(encodes, dim=0, index=sorted_indices)
+
         encodes = nn.utils.rnn.pack_padded_sequence(
-            input=encodes, lengths=torch.LongTensor(lens), batch_first=True
+            encodes, torch.LongTensor(lens), True
         )
         # return encodes
 
@@ -204,10 +205,10 @@ class BatchProgramCC(nn.Module):
 
         gru_out = torch.transpose(gru_out, 1, 2)
         # pooling
-        #! I think this is what we're after
         gru_out = F.max_pool1d(gru_out, gru_out.size(2)).squeeze(2)
         # gru_out = gru_out[:,-1]
 
+        return gru_out
         return gru_out
 
     def forward(self, x1, x2):
