@@ -118,9 +118,10 @@ if __name__ == "__main__":
                     loss.item(),
                     "Accuracy: %f" % (float(accuracy) / (BATCH_SIZE)),
                 )
+
+        torch.save(model.state_dict(), f"astnn_model_{lang}_category_{t}" + ".pkl")
         print("Testing-%d..." % t)
-        torch.save(model.state_dict(), f"astnn_model_{lang}" + ".pkl")
-        model.load_state_dict(torch.load(f"astnn_model_{lang}" + ".pkl"))
+        model.load_state_dict(torch.load(f"astnn_model_{lang}_category_{t}" + ".pkl"))
         # testing procedure
         predicts = []
         trues = []
